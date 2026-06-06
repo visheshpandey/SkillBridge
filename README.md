@@ -2,34 +2,66 @@
 
 > **AI-powered career intelligence platform** — transform your resume into a personalized career roadmap in under 30 seconds.
 
-Built with **FastAPI** · **Google Gemini 1.5 Pro** · **PyMuPDF** · **SQLite** · **Vanilla JS**
+Built with **FastAPI** · **Google Gemini 2.5 Flash** · **PyMuPDF** · **SQLite** · **Vanilla JS**
 
 ---
 
-## What It Does
+## Problem Statement
 
-SkillBridge AI accepts a resume PDF and a target job role, then delivers a full career intelligence report:
+The global talent market suffers from a fundamental information asymmetry: job seekers invest months applying to roles without understanding *why* they are rejected, while recruiters spend up to 40% of their time screening candidates who lack critical skills.
+
+Traditional resume checkers offer surface-level keyword matching — they don't explain gaps, don't rank skill priority, and don't provide actionable learning paths.
+
+> **Candidates are flying blind. They know they weren't hired — they don't know what to fix or how long it will take.**
+
+---
+
+## Solution
+
+SkillBridge AI transforms a static resume PDF into a living career intelligence report. Upload your resume, pick a target role, and in under 30 seconds get:
 
 | Feature | Description |
 |---|---|
 | 🎯 **Job Fit Score** | 0–100 score with breakdown by technical skills, experience, education, and soft skills |
-| 🔍 **Skill Gap Analysis** | Missing skills ranked by hiring impact (Critical / High / Medium / Low) |
-| 🗺️ **Learning Roadmap** | Phased plan with curated resources and estimated time-to-proficiency |
-| 🎤 **Interview Questions** | 10+ AI-generated questions tailored to the candidate's profile with danger zone flags |
-| 📈 **Career Readiness ETA** | Predicted date when the candidate will be hire-ready |
-| 💡 **AI Suggestions** | Personalized, actionable tips to strengthen the resume |
+| 🔍 **Skill Gap Analysis** | Missing skills ranked by hiring impact — Critical / High / Medium / Low |
+| 🗺️ **Learning Roadmap** | Phased learning plan with curated resources and time-to-proficiency per skill |
+| 🎤 **Interview Questions** | 10+ AI-generated questions tailored to your profile with danger zone flags |
+| 📈 **Career Readiness ETA** | Exact predicted date when you'll be hire-ready |
+| 💡 **AI Suggestions** | Personalized tips to strengthen your resume and increase interview chances |
+
+SkillBridge AI is not a resume formatter — it is a career co-pilot.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML5 / CSS3 / Vanilla JS (glassmorphism dark UI) |
-| Backend | FastAPI (Python 3.11+) with async endpoints |
-| AI Engine | Google Gemini 1.5 Pro (structured JSON mode) |
-| PDF Parsing | PyMuPDF (fitz) — fast, accurate text extraction |
-| Database | SQLite via SQLAlchemy ORM |
+| Layer | Technology | Why |
+|---|---|---|
+| Frontend | HTML5 / CSS3 / Vanilla JS | Zero build step, FastAPI serves directly, instant load |
+| Backend | FastAPI (Python 3.11+) | Async-first, auto OpenAPI docs, production-grade |
+| AI Engine | Google Gemini 2.5 Flash | Multimodal vision + structured JSON output mode |
+| PDF Parsing | PyMuPDF (fitz) | Fastest extractor, can render pages as images for OCR |
+| Database | SQLite via SQLAlchemy ORM | Zero config, portable, easy migration path to PostgreSQL |
+
+---
+
+## How It Works
+
+```
+User uploads PDF + picks role
+        ↓
+FastAPI validates the file (MIME type + magic bytes)
+        ↓
+PyMuPDF extracts text
+  → If scanned PDF: render pages as images → Gemini Vision OCR
+        ↓
+Gemini 2.5 Flash analyzes resume against role
+  → Returns structured JSON: scores, gaps, roadmap, questions
+        ↓
+Result saved to SQLite, returned to browser
+        ↓
+Dashboard renders animated score, skill tags, roadmap, questions
+```
 
 ---
 
@@ -38,29 +70,24 @@ SkillBridge AI accepts a resume PDF and a target job role, then delivers a full 
 ```
 skillbridge-ai/
 ├── backend/
-│   ├── main.py                  # FastAPI app entry point + static file serving
-│   ├── routers/
-│   │   └── analyze.py           # POST /api/analyze endpoint
+│   ├── main.py                  # FastAPI app entry point
+│   ├── routers/analyze.py       # POST /api/analyze endpoint
 │   ├── services/
-│   │   ├── pdf_parser.py        # PyMuPDF text extraction
-│   │   ├── gemini_service.py    # Gemini API client + prompt templates
+│   │   ├── pdf_parser.py        # PyMuPDF + Gemini Vision OCR fallback
+│   │   ├── gemini_service.py    # Gemini 2.5 Flash client + prompts
 │   │   └── score_calculator.py  # Result enrichment and validation
-│   ├── models/
-│   │   └── schemas.py           # Pydantic request/response schemas
-│   ├── database/
-│   │   ├── db.py                # SQLAlchemy setup + AnalysisRecord model
-│   │   └── crud.py              # DB read/write operations
-│   └── utils/
-│       └── validators.py        # PDF validation + text sanitization
+│   ├── models/schemas.py        # Pydantic request/response schemas
+│   ├── database/                # SQLAlchemy models + CRUD
+│   └── utils/validators.py      # PDF validation + text sanitization
 ├── frontend/
 │   ├── index.html               # Landing page
 │   ├── upload.html              # Resume upload page
 │   ├── dashboard.html           # Analysis results dashboard
-│   ├── css/
-│   │   └── styles.css           # Dark glassmorphism design system
-│   └── js/
-│       ├── upload.js            # Drag-and-drop, form validation, submission
-│       └── dashboard.js         # Dashboard rendering and animations
+│   ├── css/styles.css           # Dark glassmorphism design system
+│   └── js/                      # Upload logic + dashboard rendering
+├── docs/
+│   ├── PROJECT_OVERVIEW.md      # Full workflow and AI integration details
+│   └── TECH_STACK.md            # Deep dive into every technology used
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -71,105 +98,71 @@ skillbridge-ai/
 ## Setup & Running Locally
 
 ### Prerequisites
-
 - Python 3.11+
-- A Google Gemini API key — get one free at [aistudio.google.com](https://aistudio.google.com/app/apikey)
+- Google Gemini API key — free at [aistudio.google.com](https://aistudio.google.com/app/apikey)
 
-### 1. Clone the repository
+### Steps
 
 ```bash
+# 1. Clone the repo
 git clone https://github.com/visheshpandey/SkillBridge.git
 cd SkillBridge/skillbridge-ai
-```
 
-### 2. Create a virtual environment
-
-```bash
+# 2. Create virtual environment
 python -m venv venv
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS / Linux
 
-# Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Configure environment variables
-
-```bash
+# 4. Set up environment variables
 cp .env.example .env
-```
+# Open .env and add your key:
+# GEMINI_API_KEY=your_gemini_api_key_here
 
-Open `.env` and add your Gemini API key:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### 5. Start the server
-
-```bash
+# 5. Start the server
 uvicorn backend.main:app --reload --port 8000
-```
-
-### 6. Open in browser
-
-```
-http://localhost:8000
-```
-
-The API docs are also available at:
-
-```
-http://localhost:8000/docs
 ```
 
 ---
 
-## API Reference
+## Demo Instructions
 
-### `POST /api/analyze`
+Once the server is running at `http://localhost:8000`:
 
-Accepts a resume PDF and job role, returns a full analysis report.
-
-**Request** — `multipart/form-data`
-
-| Field | Type | Description |
-|---|---|---|
-| `file` | PDF file | Resume PDF, max 10MB |
-| `job_role` | string | Target job role (e.g. "Full Stack Developer") |
-
-**Response** — `application/json`
-
-```json
-{
-  "analysis_id": "uuid-v4",
-  "created_at": "2026-06-06T10:30:00Z",
-  "candidate": { "name": "...", "experience_years": 3, "seniority_level": "Mid-Level" },
-  "target_role": "Full Stack Developer",
-  "job_fit_score": { "overall": 72, "confidence": "high", "breakdown": { ... } },
-  "skills_analysis": { "matched_skills": [...], "missing_skills": [...] },
-  "career_readiness": { "current_readiness_percent": 72, "estimated_weeks_to_ready": 14, ... },
-  "learning_roadmap": [...],
-  "interview_questions": [...],
-  "ai_suggestions": [...],
-  "strengths": [...]
-}
+**Step 1 — Open the app**
+```
+http://localhost:8000
 ```
 
-### `GET /api/analysis/{analysis_id}`
+**Step 2 — Go to the upload page**
+```
+http://localhost:8000/upload
+```
 
-Retrieve a previously completed analysis by its UUID.
+**Step 3 — Upload a resume**
+- Drag and drop any resume PDF onto the upload zone
+- Both text-based PDFs (Word/Google Docs exports) and scanned PDFs are supported
+- Max file size: 10MB
 
-### `GET /health`
+**Step 4 — Select a target role**
+- Pick from the dropdown (Full Stack Developer, Data Scientist, Product Manager, etc.)
+- Or type a custom role in the text field
 
-Health check endpoint.
+**Step 5 — Click "Analyze My Readiness"**
+- The analysis takes 10–25 seconds
+- Progress steps animate while Gemini processes the resume
+
+**Step 6 — View your results**
+- Automatically redirected to the dashboard at `http://localhost:8000/dashboard`
+- Scroll through: Job Fit Score → Skill Gaps → Career Readiness → Roadmap → Interview Questions → AI Suggestions
+
+**API Explorer**
+```
+http://localhost:8000/docs
+```
+Interactive Swagger UI to test the API directly.
 
 ---
 
@@ -178,19 +171,16 @@ Health check endpoint.
 | Variable | Default | Description |
 |---|---|---|
 | `GEMINI_API_KEY` | — | **Required.** Google Gemini API key |
-| `DATABASE_URL` | `sqlite:///./skillbridge.db` | SQLAlchemy database URL |
+| `DATABASE_URL` | `sqlite:///./skillbridge.db` | Database connection URL |
 | `MAX_FILE_SIZE` | `10485760` | Max upload size in bytes (10MB) |
-| `RATE_LIMIT_PER_HOUR` | `10` | Max analyses per IP per hour |
 | `ALLOWED_ORIGINS` | `http://localhost:8000` | CORS allowed origins (comma-separated) |
 
 ---
 
-## Security Notes
+## Documentation
 
-- Resume PDFs are **never stored to disk** — text is extracted in memory and the bytes are discarded
-- Gemini API key is **never exposed to the frontend** — all AI calls happen server-side
-- Uploaded files are validated by **MIME type + PDF magic bytes** to prevent disguised uploads
-- Resume text is **sanitized** before prompt injection to prevent prompt hijacking
+- **[Project Overview & AI Integration →](docs/PROJECT_OVERVIEW.md)**
+- **[Tech Stack Deep Dive →](docs/TECH_STACK.md)**
 
 ---
 
