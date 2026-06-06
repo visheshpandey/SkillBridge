@@ -1,1 +1,208 @@
-<!-- Dashboard page — implemented in feat: build analysis results dashboard -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis Results — SkillBridge AI</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="dashboard-page grid-bg">
+
+  <!-- Ambient glows -->
+  <div class="glow-orb" style="width:500px;height:500px;background:#7353ba;bottom:0;left:0;position:fixed;"></div>
+  <div class="glow-orb" style="width:400px;height:400px;background:#faa6ff;top:0;right:0;position:fixed;"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        SkillBridge AI
+        <span class="brand-dot"></span>
+      </a>
+      <ul class="navbar-links">
+        <li><a href="/upload">New Analysis</a></li>
+      </ul>
+      <a href="/upload" class="btn-secondary">+ Rematch Profile</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-content">
+
+    <!-- Top header -->
+    <div class="dashboard-top">
+      <div>
+        <div class="breadcrumb">
+          <span>Analysis</span>
+          <span>›</span>
+          <span class="active">Job Fit Results</span>
+        </div>
+        <h1 class="dashboard-title">Job Fit Analysis</h1>
+        <p class="dashboard-sub" id="dashboardSub">
+          Our AI has cross-referenced your profile with the
+          <strong id="targetRoleInline">—</strong> requirements.
+        </p>
+      </div>
+      <a href="/upload" class="btn-secondary">← Rematch New Profile</a>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Score Row -->
+    <div class="score-grid mb-6">
+      <!-- Score Circle -->
+      <div class="card glass-card score-card">
+        <div class="donut-wrap">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#faa6ff" />
+                <stop offset="100%" stop-color="#7353ba" />
+              </linearGradient>
+            </defs>
+            <circle class="donut-track" cx="110" cy="110" r="95" />
+            <circle class="donut-fill ai-pulse" id="donutFill" cx="110" cy="110" r="95" />
+          </svg>
+          <div class="donut-center">
+            <span class="donut-score" id="overallScore">—</span>
+            <span class="donut-label">Job Fit Score</span>
+          </div>
+        </div>
+        <div class="score-alignment" id="scoreAlignment">—</div>
+        <div class="score-summary" id="scoreSummary">—</div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="card glass-card">
+        <h3><span class="icon">📊</span> Score Breakdown</h3>
+        <div class="breakdown-list">
+          <div class="breakdown-row">
+            <div class="breakdown-header">
+              <span class="breakdown-name">Technical Skills</span>
+              <span class="breakdown-val" id="scoreTech">—</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="barTech"></div></div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-header">
+              <span class="breakdown-name">Experience Relevance</span>
+              <span class="breakdown-val" id="scoreExp">—</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="barExp"></div></div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-header">
+              <span class="breakdown-name">Education Alignment</span>
+              <span class="breakdown-val" id="scoreEdu">—</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="barEdu"></div></div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-header">
+              <span class="breakdown-name">Soft Skills</span>
+              <span class="breakdown-val" id="scoreSoft">—</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="barSoft"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Row -->
+    <div class="skills-grid mb-6">
+      <div class="card glass-card">
+        <h3><span class="icon">✅</span> Matched Credentials</h3>
+        <div class="tag-list" id="matchedSkills">
+          <div style="height:28px;width:90px;background:rgba(255,255,255,0.05);border-radius:8px;"></div>
+          <div style="height:28px;width:70px;background:rgba(255,255,255,0.05);border-radius:8px;"></div>
+        </div>
+      </div>
+      <div class="card glass-card">
+        <h3><span class="icon">⚠️</span> Detected Skill Gaps</h3>
+        <div id="missingSkills">
+          <div style="height:60px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:10px;"></div>
+          <div style="height:60px;background:rgba(255,255,255,0.03);border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Career Readiness -->
+    <div class="card glass-card mb-6">
+      <h3><span class="icon">🚀</span> Career Readiness</h3>
+      <div class="readiness-grid">
+        <div class="readiness-stat">
+          <div class="readiness-val" id="readinessPercent">—</div>
+          <div class="readiness-label">Current Readiness</div>
+        </div>
+        <div class="readiness-stat">
+          <div class="readiness-val" id="readinessWeeks">—</div>
+          <div class="readiness-label">Weeks to Hire-Ready</div>
+        </div>
+        <div class="readiness-stat">
+          <div class="readiness-val" id="readinessDate" style="font-size:1.1rem;">—</div>
+          <div class="readiness-label">Predicted Ready Date</div>
+        </div>
+        <div class="readiness-stat">
+          <div class="readiness-val" id="bottleneck" style="font-size:1rem;">—</div>
+          <div class="readiness-label">Bottleneck Skill</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="card glass-card mb-6">
+      <h3><span class="icon">🗺️</span> Career Roadmap Track</h3>
+      <div class="roadmap-track" id="roadmapTrack">
+        <div style="height:80px;background:rgba(255,255,255,0.03);border-radius:8px;width:100%;"></div>
+      </div>
+    </div>
+
+    <!-- Interview Questions -->
+    <div class="mb-6">
+      <div class="section-bar">
+        <h3>🎤 AI Predicted Interview Questions</h3>
+        <div class="line"></div>
+      </div>
+      <div class="questions-grid" id="questionsGrid">
+        <div style="height:200px;background:rgba(255,255,255,0.03);border-radius:14px;"></div>
+        <div style="height:200px;background:rgba(255,255,255,0.03);border-radius:14px;"></div>
+        <div style="height:200px;background:rgba(255,255,255,0.03);border-radius:14px;"></div>
+      </div>
+    </div>
+
+    <!-- Suggestions + Strengths -->
+    <div class="two-col mb-6">
+      <div class="card glass-card">
+        <h3><span class="icon">✦</span> AI Improvement Suggestions</h3>
+        <ul class="bullet-list" id="suggestionsList">
+          <li><span class="dot">›</span>Loading suggestions...</li>
+        </ul>
+      </div>
+      <div class="card glass-card">
+        <h3><span class="icon">🌟</span> Your Strengths</h3>
+        <ul class="bullet-list" id="strengthsList">
+          <li><span class="dot">✓</span>Loading strengths...</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- end dashboard-content -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">SkillBridge AI</div>
+        <div class="footer-copy">© 2026 SkillBridge AI. Powered by Google Gemini 1.5 Pro.</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="/upload">New Analysis</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

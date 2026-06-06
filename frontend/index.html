@@ -1,1 +1,182 @@
-<!-- Landing page — implemented in feat: build landing page UI -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillBridge AI — Career Intelligence Platform</title>
+  <meta name="description" content="Transform your resume into a career roadmap. AI-powered skill gap analysis, job fit scoring, and personalized learning plans in under 30 seconds." />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="grid-bg">
+
+  <!-- Fixed glow orbs -->
+  <div class="glow-orb" style="width:500px;height:500px;background:#faa6ff;bottom:0;left:0;"></div>
+  <div class="glow-orb" style="width:400px;height:400px;background:#7353ba;top:0;right:0;"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        SkillBridge AI
+        <span class="brand-dot"></span>
+      </a>
+      <ul class="navbar-links">
+        <li><a href="/" class="active">Platform</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+      </ul>
+      <a href="/upload" class="btn-primary" style="padding:10px 24px;font-size:0.85rem;">
+        Get Started →
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <img
+      class="hero-bg-img"
+      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBri_4su1YTLIabgbSEMc7P_o8n0PSQbozbeJWNLavEzM2jH-_lXPfI7CdcXeFqzOYOdNaE3Gnl_Zes2u7VuD6NtGdAEQhvYm66OWMkkYEdHcg7SepyYW4cwCDephMdYXF8BhEbsLxgrGliD_RKdRwKOKVDJ3YCVUes0A7HOudz5wm_0m_3xT0zKkGDyq5jvcDNQomeI4lCHw0mI0NLa8rd28eMSKEMRyDLJn9J3f-XR5cn3Qzk6IuzwWzTXj72gLk_5Vb_2wZkvno"
+      alt="AI career intelligence holographic background"
+      referrerpolicy="no-referrer"
+    />
+    <div class="hero-bg-overlay"></div>
+    <div class="glow-orb" style="width:500px;height:500px;background:#faa6ff;top:25%;left:25%;animation:pulse-glow 4s ease infinite;"></div>
+    <div class="glow-orb" style="width:350px;height:350px;background:#7353ba;bottom:25%;right:25%;animation:pulse-glow 4s 1s ease infinite;"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge fade-in">
+        ✦ &nbsp;Enterprise-Grade Career Benchmarking
+      </div>
+      <h1 class="fade-in-delay-1">
+        From Resume to Role —<br />
+        <span class="gradient-text">Powered by AI</span>
+      </h1>
+      <p class="fade-in-delay-2">
+        Analyze your resume against any job role. Get a precise fit score, skill gap report, personalized learning roadmap, and AI-generated interview questions — in under 30 seconds.
+      </p>
+      <div class="hero-cta fade-in-delay-3">
+        <a href="/upload" class="btn-primary" style="padding:16px 40px;font-size:1.05rem;border-radius:14px;">
+          📄&nbsp; Analyze Resume
+        </a>
+        <a href="#features" class="btn-secondary" style="padding:16px 40px;font-size:0.85rem;border-radius:14px;">
+          ▶&nbsp; See How It Works
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">30s</div>
+        <div class="stat-label">Analysis Time</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">100+</div>
+        <div class="stat-label">Roles Supported</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">10+</div>
+        <div class="stat-label">Interview Questions</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">Gemini</div>
+        <div class="stat-label">1.5 Pro Powered</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <div class="section-heading">
+      <h2>Everything you need to get hired faster</h2>
+      <p>Not just a resume checker. SkillBridge AI delivers actionable career intelligence.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card glass-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Job Fit Score</h3>
+        <p>A precise 0–100 score benchmarked against real industry requirements, broken down by technical skills, experience, education, and soft skills.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Skill Gap Analysis</h3>
+        <p>Discover exactly which skills are missing, ranked by hiring impact — Critical, High, Medium, or Low — with estimated time to learn each one.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <div class="feature-icon">🗺️</div>
+        <h3>Learning Roadmap</h3>
+        <p>A phased, sequenced learning plan with curated resources and a Career Readiness ETA so you know exactly when you'll be hire-ready.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <div class="feature-icon">🎤</div>
+        <h3>Interview Questions</h3>
+        <p>10+ AI-generated role-specific questions tailored to your profile, with danger zone flags highlighting your weakest topics.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <div class="feature-icon">📈</div>
+        <h3>Career Readiness ETA</h3>
+        <p>See exactly how many weeks until you're hire-ready and which single skill is the biggest bottleneck standing between you and the role.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <div class="feature-icon">💡</div>
+        <h3>AI Suggestions</h3>
+        <p>Personalized, actionable tips to strengthen your resume and increase your chances of getting interviews for your target role.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="features-section" id="how-it-works" style="padding-top:0;">
+    <div class="section-heading">
+      <h2>How It Works</h2>
+      <p>Three steps from resume to roadmap.</p>
+    </div>
+    <div class="features-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+      <div class="feature-card glass-card" style="text-align:center;">
+        <div class="feature-icon" style="margin:0 auto 20px;">📤</div>
+        <h3>1. Upload Your Resume</h3>
+        <p>Drag and drop your PDF resume. Our parser extracts all text while preserving structure.</p>
+      </div>
+      <div class="feature-card glass-card" style="text-align:center;">
+        <div class="feature-icon" style="margin:0 auto 20px;">🎯</div>
+        <h3>2. Pick Your Target Role</h3>
+        <p>Select from 20+ common roles or type a custom one. Be as specific as you want.</p>
+      </div>
+      <div class="feature-card glass-card" style="text-align:center;">
+        <div class="feature-icon" style="margin:0 auto 20px;">🚀</div>
+        <h3>3. Get Your Report</h3>
+        <p>Gemini 1.5 Pro analyses your profile in seconds and delivers a full career intelligence report.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="cta-banner">
+    <div class="glow-orb" style="width:400px;height:400px;background:#faa6ff;top:-50%;left:50%;transform:translateX(-50%);opacity:0.1;"></div>
+    <h2>Ready to bridge the gap?</h2>
+    <p>Upload your resume in seconds. No account required.</p>
+    <a href="/upload" class="btn-primary" style="padding:16px 48px;font-size:1.05rem;border-radius:14px;background:#fff;color:#7353ba;">
+      Analyze My Resume Now →
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">SkillBridge AI</div>
+        <div class="footer-copy">© 2026 SkillBridge AI. Precision Career Intelligence.</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">AI Ethics</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

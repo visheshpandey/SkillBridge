@@ -1,1 +1,123 @@
-<!-- Upload page — implemented in feat: add resume upload page with drag-and-drop -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Resume — SkillBridge AI</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="upload-page grid-bg">
+
+  <!-- Fixed ambient glows -->
+  <div class="glow-orb" style="width:400px;height:400px;background:#faa6ff;bottom:-10%;left:-10%;"></div>
+  <div class="glow-orb" style="width:350px;height:350px;background:#7353ba;top:-10%;right:-10%;"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        SkillBridge AI
+        <span class="brand-dot"></span>
+      </a>
+      <ul class="navbar-links">
+        <li><a href="/">Platform</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Upload Main -->
+  <main class="upload-main">
+    <div class="upload-card glass-card fade-in">
+
+      <!-- Header -->
+      <div class="hero-badge" style="margin-bottom:20px;">✦ &nbsp;Career Intelligence Engine</div>
+      <h2 class="upload-card-title">Analyze Your Resume</h2>
+      <p class="upload-card-sub">Upload your PDF and select a target role. Full analysis in under 30 seconds.</p>
+
+      <!-- Error Banner -->
+      <div class="error-banner" id="errorBanner"></div>
+
+      <form id="uploadForm" enctype="multipart/form-data">
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <h3>Drag &amp; drop your resume here</h3>
+          <p style="margin-top:8px;">or <span class="browse-link" id="browseLink">browse to upload</span></p>
+          <p style="margin-top:8px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);">PDF only · Max 10MB</p>
+          <input type="file" id="fileInput" name="file" accept=".pdf,application/pdf" style="display:none;" />
+        </div>
+
+        <!-- File Info -->
+        <div class="file-info" id="fileInfo">
+          <span>📎</span>
+          <span class="file-info-name" id="fileName">—</span>
+          <span class="file-info-size" id="fileSize">—</span>
+          <span class="file-remove" id="fileRemove" title="Remove">✕</span>
+        </div>
+
+        <!-- Role Select -->
+        <div class="form-group">
+          <label class="form-label" for="jobRole">Target Job Role</label>
+          <select class="form-select" id="jobRole" name="job_role">
+            <option value="" disabled selected>Select a role...</option>
+            <optgroup label="Engineering">
+              <option>Full Stack Developer</option>
+              <option>Frontend Developer</option>
+              <option>Backend Developer</option>
+              <option>DevOps Engineer</option>
+              <option>Cloud Engineer</option>
+              <option>Mobile Developer (iOS)</option>
+              <option>Mobile Developer (Android)</option>
+              <option>Embedded Systems Engineer</option>
+            </optgroup>
+            <optgroup label="Data & AI">
+              <option>Data Scientist</option>
+              <option>Machine Learning Engineer</option>
+              <option>Data Engineer</option>
+              <option>AI Research Scientist</option>
+              <option>Business Intelligence Analyst</option>
+            </optgroup>
+            <optgroup label="Product & Design">
+              <option>Product Manager</option>
+              <option>UX Designer</option>
+              <option>UI Designer</option>
+            </optgroup>
+            <optgroup label="Security & QA">
+              <option>Cybersecurity Engineer</option>
+              <option>QA Engineer</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Custom Role -->
+        <div class="form-group">
+          <label class="form-label" for="customRole">Or type a custom role</label>
+          <input class="form-input" type="text" id="customRole" placeholder="e.g. Blockchain Developer, SRE..." maxlength="100" />
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-primary submit-btn" id="submitBtn" disabled>
+          Analyze My Readiness &nbsp;›
+        </button>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Analyzing Overlay -->
+  <div class="analyzing-overlay" id="analyzingOverlay">
+    <div class="spinner ai-pulse"></div>
+    <div class="overlay-title">Processing Career Intelligence...</div>
+    <div class="overlay-sub">Gemini AI is reviewing your profile</div>
+    <div class="progress-steps">
+      <div class="progress-step active" id="step1">📄 &nbsp;Extracting resume text</div>
+      <div class="progress-step"        id="step2">🤖 &nbsp;Running AI analysis</div>
+      <div class="progress-step"        id="step3">📊 &nbsp;Calculating skill gaps</div>
+      <div class="progress-step"        id="step4">🗺️ &nbsp;Building learning roadmap</div>
+    </div>
+  </div>
+
+  <script src="/js/upload.js"></script>
+</body>
+</html>
