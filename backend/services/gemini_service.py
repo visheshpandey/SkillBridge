@@ -132,7 +132,7 @@ def analyze_resume_with_gemini(resume_text: str, job_role: str) -> dict:
         HTTPException 500 if response cannot be parsed as valid JSON.
     """
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-2.5-flash",
         system_instruction=SYSTEM_PROMPT,
         generation_config=genai.GenerationConfig(
             temperature=0.3,
@@ -145,8 +145,9 @@ def analyze_resume_with_gemini(resume_text: str, job_role: str) -> dict:
         job_role=job_role,
     )
 
-    # Retry with exponential backoff (handles rate limits)
-    max_retries = 3
+    # Single attempt for rate limit errors — retrying just burns quota faster.
+    # Only retry (max 2 times) for transient network/server errors.
+    max_retries = 2
     for attempt in range(max_retries):
         try:
             response = model.generate_content(prompt)
@@ -157,38 +158,37 @@ def analyze_resume_with_gemini(resume_text: str, job_role: str) -> dict:
             return result
 
         except json.JSONDecodeError as e:
-            if attempt == max_retries - 1:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"AI returned malformed JSON. Please try again. ({str(e)})",
-                )
+            # Don't retry on bad JSON — just fail immediately
+            raise HTTPException(
+                status_code=500,
+                detail=f"AI returned malformed JSON. Please try again. ({str(e)})",
+            )
 
         except Exception as e:
             error_str = str(e).lower()
 
-            # Rate limit — wait and retry
+            # Rate limit — NEVER retry, fail immediately with clear message
             if "quota" in error_str or "rate" in error_str or "429" in error_str:
-                wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s
-                time.sleep(wait_time)
-                if attempt == max_retries - 1:
-                    raise HTTPException(
-                        status_code=429,
-                        detail="AI service rate limit reached. Please try again in a moment.",
-                    )
+                raise HTTPException(
+                    status_code=429,
+                    detail="AI rate limit reached. Please wait 30 seconds and try again.",
+                )
 
-            # API key issue
-            elif "api_key" in error_str or "401" in error_str or "403" in error_str:
+            # API key issue — never retry
+            if "api_key" in error_str or "401" in error_str or "403" in error_str:
                 raise HTTPException(
                     status_code=502,
                     detail="Gemini API key is invalid or missing. Check your .env configuration.",
                 )
 
-            else:
-                if attempt == max_retries - 1:
-                    raise HTTPException(
-                        status_code=502,
-                        detail=f"AI service unavailable. Please try again. ({str(e)})",
-                    )
-                time.sleep(2 ** attempt)
+            # Transient error — retry once with short wait
+            if attempt < max_retries - 1:
+                time.sleep(3)
+                continue
 
-    raise HTTPException(status_code=502, detail="AI analysis failed after multiple retries.")
+            raise HTTPException(
+                status_code=502,
+                detail=f"AI service unavailable. Please try again. ({str(e)})",
+            )
+
+    raise HTTPException(status_code=502, detail="AI analysis failed. Please try again.")

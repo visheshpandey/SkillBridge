@@ -1,7 +1,8 @@
 import uuid
 import json
 from datetime import datetime
-from fastapi import APIRouter, UploadFile, File, Form, Depends, Request
+from typing import Optional
+from fastapi import APIRouter, UploadFile, File, Form, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.database.db import get_db
@@ -9,7 +10,7 @@ from backend.database.crud import save_analysis, get_analysis_by_id, get_analyse
 from backend.services.pdf_parser import extract_text_from_pdf
 from backend.services.gemini_service import analyze_resume_with_gemini
 from backend.services.score_calculator import enrich_analysis_result, calculate_priority_order
-from backend.utils.validators import validate_pdf_upload
+from backend.utils.validators import validate_pdf_upload, sanitize_text
 from backend.models.schemas import AnalysisResponse, AnalysisHistoryItem, ErrorResponse
 
 router = APIRouter(prefix="/api", tags=["Analysis"])
@@ -18,29 +19,46 @@ router = APIRouter(prefix="/api", tags=["Analysis"])
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_resume(
     request: Request,
-    file: UploadFile = File(..., description="Resume PDF file (max 10MB)"),
     job_role: str = Form(..., min_length=2, max_length=100, description="Target job role"),
+    file: Optional[UploadFile] = File(None, description="Resume PDF file (max 10MB)"),
+    resume_text: Optional[str] = Form(None, description="Resume text (paste fallback)"),
     db: Session = Depends(get_db),
 ):
     """
-    Core endpoint: accepts a resume PDF + job role, returns full career analysis.
+    Core endpoint: accepts a resume PDF OR pasted text + job role.
+
+    Supports two input modes:
+    - PDF upload: file is validated and parsed with PyMuPDF
+    - Text paste: resume_text is sanitized directly (fallback for scanned PDFs)
 
     Flow:
-    1. Validate PDF upload
-    2. Extract text with PyMuPDF
-    3. Send to Gemini 1.5 Pro for analysis
-    4. Enrich and validate the result
-    5. Persist to SQLite
-    6. Return structured JSON response
+    1. Get resume text from PDF or paste input
+    2. Send to Gemini 1.5 Pro for analysis
+    3. Enrich and validate the result
+    4. Persist to SQLite
+    5. Return structured JSON response
     """
-    # Step 1 — Validate and read file
-    pdf_bytes = await validate_pdf_upload(file)
+    # Step 1 — Get resume text from either PDF or paste
+    if file and file.filename:
+        # PDF mode — validate and extract
+        pdf_bytes = await validate_pdf_upload(file)
+        extracted_text = extract_text_from_pdf(pdf_bytes)
+    elif resume_text and resume_text.strip():
+        # Paste mode — sanitize directly
+        extracted_text = sanitize_text(resume_text)
+        if len(extracted_text) < 50:
+            raise HTTPException(
+                status_code=422,
+                detail="Pasted resume text is too short. Please paste the full resume content.",
+            )
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a PDF file or paste your resume text.",
+        )
 
-    # Step 2 — Extract text from PDF
-    resume_text = extract_text_from_pdf(pdf_bytes)
-
-    # Step 3 — Run AI analysis
-    raw_result = analyze_resume_with_gemini(resume_text, job_role)
+    # Step 2 — Run AI analysis
+    raw_result = analyze_resume_with_gemini(extracted_text, job_role)
 
     # Step 4 — Enrich result with computed fields
     enriched = enrich_analysis_result(raw_result, job_role)

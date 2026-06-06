@@ -1,6 +1,6 @@
 /**
  * SkillBridge AI — Upload Page Logic
- * Handles drag-and-drop, file selection, form validation, and submission.
+ * Handles PDF drag-and-drop upload AND resume text paste fallback.
  */
 
 const dropZone    = document.getElementById('dropZone');
@@ -10,6 +10,8 @@ const fileInfo    = document.getElementById('fileInfo');
 const fileName    = document.getElementById('fileName');
 const fileSize    = document.getElementById('fileSize');
 const fileRemove  = document.getElementById('fileRemove');
+const pasteArea   = document.getElementById('pasteArea');
+const charCount   = document.getElementById('charCount');
 const jobRole     = document.getElementById('jobRole');
 const customRole  = document.getElementById('customRole');
 const submitBtn   = document.getElementById('submitBtn');
@@ -17,50 +19,58 @@ const uploadForm  = document.getElementById('uploadForm');
 const errorBanner = document.getElementById('errorBanner');
 const overlay     = document.getElementById('analyzingOverlay');
 
-let selectedFile = null;
+let selectedFile  = null;
+let activeTab     = 'upload'; // 'upload' | 'paste'
 
-// ─── File Selection ──────────────────────────────────────────────────────────
+// ─── Tab Switching ────────────────────────────────────────────────────────────
+
+window.switchTab = function(tab) {
+  activeTab = tab;
+
+  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('tabPaste').classList.toggle('active', tab === 'paste');
+  document.getElementById('tabUploadBtn').classList.toggle('active', tab === 'upload');
+  document.getElementById('tabPasteBtn').classList.toggle('active', tab === 'paste');
+
+  clearError();
+  checkFormReady();
+};
+
+// ─── Paste Input ──────────────────────────────────────────────────────────────
+
+window.onPasteInput = function() {
+  const len = pasteArea.value.length;
+  charCount.textContent = len.toLocaleString() + ' characters';
+  charCount.className   = 'char-count' + (len >= 200 ? ' good' : '');
+  checkFormReady();
+};
+
+// ─── File Selection ───────────────────────────────────────────────────────────
 
 browseLink.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('click', (e) => {
-  if (e.target !== browseLink) fileInput.click();
-});
+dropZone.addEventListener('click', (e) => { if (e.target !== browseLink) fileInput.click(); });
+fileInput.addEventListener('change', () => { if (fileInput.files.length > 0) handleFile(fileInput.files[0]); });
 
-fileInput.addEventListener('change', () => {
-  if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
-});
+// ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
-// ─── Drag & Drop ─────────────────────────────────────────────────────────────
-
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
-
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('drag-over');
-});
-
+dropZone.addEventListener('dragover',  (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', ()  => { dropZone.classList.remove('drag-over'); });
 dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) handleFile(file);
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
 
-// ─── File Validation & Display ───────────────────────────────────────────────
+// ─── File Validation ──────────────────────────────────────────────────────────
 
 function handleFile(file) {
   clearError();
 
-  // Client-side validation before sending to server
   if (!file.name.toLowerCase().endsWith('.pdf') || file.type !== 'application/pdf') {
     showError('Only PDF files are accepted. Please upload a .pdf file.');
     return;
   }
-
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
+  if (file.size > 10 * 1024 * 1024) {
     showError('File is too large. Maximum size is 10MB.');
     return;
   }
@@ -82,33 +92,48 @@ fileRemove.addEventListener('click', (e) => {
   checkFormReady();
 });
 
-// ─── Form Validation ─────────────────────────────────────────────────────────
+// ─── Form Validation ──────────────────────────────────────────────────────────
 
 jobRole.addEventListener('change', checkFormReady);
 customRole.addEventListener('input', checkFormReady);
 
 function checkFormReady() {
   const roleValue = customRole.value.trim() || jobRole.value;
-  submitBtn.disabled = !(selectedFile && roleValue);
+  const hasContent = activeTab === 'upload'
+    ? !!selectedFile
+    : pasteArea.value.trim().length >= 50;
+  submitBtn.disabled = !(hasContent && roleValue);
 }
 
-// ─── Form Submission ─────────────────────────────────────────────────────────
+// ─── Form Submission ──────────────────────────────────────────────────────────
 
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError();
 
-  if (!selectedFile) { showError('Please select a PDF file.'); return; }
-
   const role = customRole.value.trim() || jobRole.value;
   if (!role) { showError('Please select or enter a target job role.'); return; }
 
-  // Show analyzing overlay and animate steps
+  // Validate input depending on active tab
+  if (activeTab === 'upload') {
+    if (!selectedFile) { showError('Please select a PDF file to upload.'); return; }
+  } else {
+    if (pasteArea.value.trim().length < 50) {
+      showError('Please paste your full resume text (at least 50 characters).');
+      return;
+    }
+  }
+
   showOverlay();
 
   const formData = new FormData();
-  formData.append('file', selectedFile);
   formData.append('job_role', role);
+
+  if (activeTab === 'upload') {
+    formData.append('file', selectedFile);
+  } else {
+    formData.append('resume_text', pasteArea.value.trim());
+  }
 
   try {
     const response = await fetch('/api/analyze', {
@@ -123,7 +148,6 @@ uploadForm.addEventListener('submit', async (e) => {
       throw new Error(data.detail || 'Analysis failed. Please try again.');
     }
 
-    // Store result in sessionStorage and redirect to dashboard
     sessionStorage.setItem('analysisResult', JSON.stringify(data));
     window.location.href = '/dashboard';
 
@@ -133,18 +157,17 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
-// ─── Overlay Step Animation ───────────────────────────────────────────────────
+// ─── Overlay Animation ────────────────────────────────────────────────────────
 
 function showOverlay() {
   overlay.classList.add('visible');
   submitBtn.disabled = true;
 
-  const steps = ['step1', 'step2', 'step3', 'step4'];
+  const steps  = ['step1', 'step2', 'step3', 'step4'];
   const delays = [0, 3000, 8000, 15000];
 
   steps.forEach((id, i) => {
     setTimeout(() => {
-      // Mark previous step done
       if (i > 0) {
         document.getElementById(steps[i - 1]).classList.remove('active');
         document.getElementById(steps[i - 1]).classList.add('done');
@@ -156,13 +179,13 @@ function showOverlay() {
 
 function hideOverlay() {
   overlay.classList.remove('visible');
-  submitBtn.disabled = false;
+  checkFormReady();
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function showError(msg) {
-  errorBanner.textContent = '⚠️ ' + msg;
+  errorBanner.textContent = '⚠ ' + msg;
   errorBanner.classList.add('visible');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
