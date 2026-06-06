@@ -1,6 +1,7 @@
 /**
  * SkillBridge AI — Upload Page Logic
- * Handles PDF drag-and-drop upload AND resume text paste fallback.
+ * Handles PDF drag-and-drop and file upload.
+ * Scanned PDFs are handled automatically via Gemini Vision OCR on the backend.
  */
 
 const dropZone    = document.getElementById('dropZone');
@@ -10,8 +11,6 @@ const fileInfo    = document.getElementById('fileInfo');
 const fileName    = document.getElementById('fileName');
 const fileSize    = document.getElementById('fileSize');
 const fileRemove  = document.getElementById('fileRemove');
-const pasteArea   = document.getElementById('pasteArea');
-const charCount   = document.getElementById('charCount');
 const jobRole     = document.getElementById('jobRole');
 const customRole  = document.getElementById('customRole');
 const submitBtn   = document.getElementById('submitBtn');
@@ -19,31 +18,7 @@ const uploadForm  = document.getElementById('uploadForm');
 const errorBanner = document.getElementById('errorBanner');
 const overlay     = document.getElementById('analyzingOverlay');
 
-let selectedFile  = null;
-let activeTab     = 'upload'; // 'upload' | 'paste'
-
-// ─── Tab Switching ────────────────────────────────────────────────────────────
-
-window.switchTab = function(tab) {
-  activeTab = tab;
-
-  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
-  document.getElementById('tabPaste').classList.toggle('active', tab === 'paste');
-  document.getElementById('tabUploadBtn').classList.toggle('active', tab === 'upload');
-  document.getElementById('tabPasteBtn').classList.toggle('active', tab === 'paste');
-
-  clearError();
-  checkFormReady();
-};
-
-// ─── Paste Input ──────────────────────────────────────────────────────────────
-
-window.onPasteInput = function() {
-  const len = pasteArea.value.length;
-  charCount.textContent = len.toLocaleString() + ' characters';
-  charCount.className   = 'char-count' + (len >= 200 ? ' good' : '');
-  checkFormReady();
-};
+let selectedFile = null;
 
 // ─── File Selection ───────────────────────────────────────────────────────────
 
@@ -54,7 +29,7 @@ fileInput.addEventListener('change', () => { if (fileInput.files.length > 0) han
 // ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
 dropZone.addEventListener('dragover',  (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', ()  => { dropZone.classList.remove('drag-over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
@@ -71,7 +46,7 @@ function handleFile(file) {
     return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    showError('File is too large. Maximum size is 10MB.');
+    showError('File too large. Maximum size is 10MB.');
     return;
   }
 
@@ -99,10 +74,7 @@ customRole.addEventListener('input', checkFormReady);
 
 function checkFormReady() {
   const roleValue = customRole.value.trim() || jobRole.value;
-  const hasContent = activeTab === 'upload'
-    ? !!selectedFile
-    : pasteArea.value.trim().length >= 50;
-  submitBtn.disabled = !(hasContent && roleValue);
+  submitBtn.disabled = !(selectedFile && roleValue);
 }
 
 // ─── Form Submission ──────────────────────────────────────────────────────────
@@ -111,29 +83,16 @@ uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError();
 
+  if (!selectedFile) { showError('Please select a PDF file to upload.'); return; }
+
   const role = customRole.value.trim() || jobRole.value;
   if (!role) { showError('Please select or enter a target job role.'); return; }
-
-  // Validate input depending on active tab
-  if (activeTab === 'upload') {
-    if (!selectedFile) { showError('Please select a PDF file to upload.'); return; }
-  } else {
-    if (pasteArea.value.trim().length < 50) {
-      showError('Please paste your full resume text (at least 50 characters).');
-      return;
-    }
-  }
 
   showOverlay();
 
   const formData = new FormData();
+  formData.append('file', selectedFile);
   formData.append('job_role', role);
-
-  if (activeTab === 'upload') {
-    formData.append('file', selectedFile);
-  } else {
-    formData.append('resume_text', pasteArea.value.trim());
-  }
 
   try {
     const response = await fetch('/api/analyze', {
@@ -182,7 +141,7 @@ function hideOverlay() {
   checkFormReady();
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function showError(msg) {
   errorBanner.textContent = '⚠ ' + msg;

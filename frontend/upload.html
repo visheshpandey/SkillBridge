@@ -5,63 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upload Resume — SkillBridge AI</title>
   <link rel="stylesheet" href="/static/styles.css" />
-  <style>
-    /* Tab toggle */
-    .tab-toggle {
-      display: flex;
-      background: rgba(15,16,32,0.8);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 10px;
-      padding: 4px;
-      gap: 2px;
-      margin-bottom: 24px;
-    }
-    .tab-btn {
-      flex: 1; padding: 10px 16px;
-      border: none; border-radius: 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem; font-weight: 700;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      cursor: pointer; transition: all 0.2s ease;
-      color: var(--text-muted); background: transparent;
-    }
-    .tab-btn.active {
-      background: #7353ba;
-      color: #fff;
-    }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* Paste textarea */
-    .paste-area {
-      width: 100%; height: 240px;
-      background: rgba(15,16,32,0.9);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: var(--radius);
-      padding: 16px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem; color: #fff; line-height: 1.6;
-      resize: none; transition: border-color 0.2s;
-    }
-    .paste-area:focus {
-      outline: none;
-      border-color: var(--mauve);
-      box-shadow: 0 0 0 3px rgba(250,166,255,0.1);
-    }
-    .paste-area::placeholder { color: rgba(210,194,207,0.3); }
-    .paste-hint {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem; color: var(--text-dim);
-      display: flex; align-items: center; gap: 6px;
-      margin-top: 10px;
-    }
-    .char-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem; color: var(--text-dim);
-      text-align: right; margin-top: 6px;
-    }
-    .char-count.good { color: var(--mauve); }
-  </style>
 </head>
 <body class="upload-page grid-bg">
 
@@ -88,53 +31,28 @@
 
       <div class="hero-badge" style="margin-bottom:20px;">✦ &nbsp;Career Intelligence Engine</div>
       <h2 class="upload-card-title">Analyze Your Resume</h2>
-      <p class="upload-card-sub">Upload your PDF or paste resume text. Full analysis in under 30 seconds.</p>
+      <p class="upload-card-sub">Upload your PDF and select a target role. Full analysis in under 30 seconds.</p>
 
       <!-- Error Banner -->
       <div class="error-banner" id="errorBanner"></div>
 
       <form id="uploadForm" enctype="multipart/form-data">
 
-        <!-- Tab Toggle -->
-        <div class="tab-toggle">
-          <button type="button" class="tab-btn active" id="tabUploadBtn" onclick="switchTab('upload')">
-            📄 &nbsp;Upload PDF
-          </button>
-          <button type="button" class="tab-btn" id="tabPasteBtn" onclick="switchTab('paste')">
-            📋 &nbsp;Paste Text
-          </button>
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <h3>Drag &amp; drop your resume here</h3>
+          <p style="margin-top:8px;">or <span class="browse-link" id="browseLink">browse to upload</span></p>
+          <p style="margin-top:8px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);">PDF only · Max 10MB · Text &amp; scanned PDFs supported</p>
+          <input type="file" id="fileInput" name="file" accept=".pdf,application/pdf" style="display:none;" />
         </div>
 
-        <!-- Tab: Upload PDF -->
-        <div class="tab-panel active" id="tabUpload">
-          <div class="drop-zone" id="dropZone">
-            <div class="drop-icon">📄</div>
-            <h3>Drag &amp; drop your resume here</h3>
-            <p style="margin-top:8px;">or <span class="browse-link" id="browseLink">browse to upload</span></p>
-            <p style="margin-top:8px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);">PDF only · Max 10MB</p>
-            <input type="file" id="fileInput" name="file" accept=".pdf,application/pdf" style="display:none;" />
-          </div>
-
-          <div class="file-info" id="fileInfo">
-            <span>📎</span>
-            <span class="file-info-name" id="fileName">—</span>
-            <span class="file-info-size" id="fileSize">—</span>
-            <span class="file-remove" id="fileRemove" title="Remove">✕</span>
-          </div>
-        </div>
-
-        <!-- Tab: Paste Text -->
-        <div class="tab-panel" id="tabPaste">
-          <textarea
-            class="paste-area"
-            id="pasteArea"
-            placeholder="Paste your full resume text here...&#10;&#10;Include: work experience, skills, education, projects, certifications.&#10;The more detail you provide, the more accurate your analysis will be."
-            oninput="onPasteInput()"
-          ></textarea>
-          <div class="char-count" id="charCount">0 characters</div>
-          <div class="paste-hint">
-            ⚡ &nbsp;Works great for scanned PDFs — just copy the text from your resume and paste it here.
-          </div>
+        <!-- File Info -->
+        <div class="file-info" id="fileInfo">
+          <span>📎</span>
+          <span class="file-info-name" id="fileName">—</span>
+          <span class="file-info-size" id="fileSize">—</span>
+          <span class="file-remove" id="fileRemove" title="Remove">✕</span>
         </div>
 
         <!-- Role Select -->
